@@ -1,6 +1,6 @@
 imagePullSecrets:
   enabled: true
-  name: ""
+  name: "fellowblogs-ecr-secret"
 
 postgres:
   name: postgres
@@ -62,4 +62,4 @@ ingress:
   host: "fellowblogs.reetwiz.local"
   tls:
     enabled: false
-    secretName: ""
+    secretName: "fellowblogs-tls-secret"
