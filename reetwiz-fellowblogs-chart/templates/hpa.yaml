@@ -1,0 +1,46 @@
+{{- if .Values.autoscaling.enabled }}
+{{- range list .Values.backend1 .Values.backend2 }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "reetwiz-fellowblogs-chart.fullname" $ }}-{{ .name }}-hpa
+  labels:
+    {{- include "reetwiz-fellowblogs-chart.labels" $ | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "reetwiz-fellowblogs-chart.fullname" $ }}-{{ .name }}
+  minReplicas: {{ $.Values.autoscaling.minReplicas }}
+  maxReplicas: {{ $.Values.autoscaling.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ $.Values.autoscaling.targetCPU }}
+{{- end }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-{{ .Values.frontend.name }}-hpa
+  labels:
+    {{- include "reetwiz-fellowblogs-chart.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-{{ .Values.frontend.name }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.autoscaling.targetCPU }}
+{{- end }}

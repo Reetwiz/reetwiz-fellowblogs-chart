@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-{{ .Values.postgres.name }}
+  labels:
+    {{- include "reetwiz-fellowblogs-chart.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-{{ .Values.postgres.name }}-headless
+  replicas: {{ .Values.postgres.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "reetwiz-fellowblogs-chart.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ .Values.postgres.name }}
+  template:
+    metadata:
+      labels:
+        {{- include "reetwiz-fellowblogs-chart.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ .Values.postgres.name }}
+    spec:
+      {{- if .Values.imagePullSecrets.enabled }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecrets.name }}
+      {{- end }}
+      containers:
+      - name: {{ .Values.postgres.name }}
+        image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+        imagePullPolicy: {{ .Values.postgres.image.pullPolicy }}
+        ports:
+        - name: postgres
+          containerPort: {{ .Values.postgres.service.primary.port }}
+        env:
+        - name: POSTGRESQL_POSTGRES_PASSWORD
+          valueFrom: { secretKeyRef: { name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-postgres-secret, key: POSTGRES_PASSWORD } }
+        - name: POSTGRESQL_USERNAME
+          value: {{ .Values.postgres.dbUser }}
+        - name: POSTGRESQL_DATABASE
+          value: {{ .Values.postgres.dbName }}
+        - name: POSTGRESQL_REPLICATION_MODE
+          value: master
+        - name: POSTGRESQL_REPLICATION_USER
+          value: repl_user
+        - name: POSTGRESQL_REPLICATION_PASSWORD
+          valueFrom: { secretKeyRef: { name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-postgres-secret, key: POSTGRES_REPLICATION_PASSWORD } }
+        - name: POSTGRESQL_MASTER_HOST
+          value: "{{ include "reetwiz-fellowblogs-chart.fullname" . }}-{{ .Values.postgres.name }}-primary"
+        - name: POSTGRESQL_MASTER_PORT_NUMBER
+          value: {{ .Values.postgres.service.primary.port | quote }}
+        startupProbe:
+          exec:
+            command: [ "pg_isready", "-U", "{{ .Values.postgres.dbUser }}", "-d", "{{ .Values.postgres.dbName }}" ]
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 15
+        livenessProbe:
+          exec:
+            command: [ "pg_isready", "-U", "{{ .Values.postgres.dbUser }}", "-d", "{{ .Values.postgres.dbName }}" ]
+          initialDelaySeconds: 45
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /bitnami/postgresql
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.postgres.storage.storageClassName }}
+      resources:
+        requests:
+          storage: {{ .Values.postgres.storage.size }}

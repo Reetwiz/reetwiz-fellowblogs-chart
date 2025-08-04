@@ -1,0 +1,52 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-ingress
+  labels:
+    {{- include "reetwiz-fellowblogs-chart.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+  - hosts:
+    - {{ .Values.ingress.host }}
+    secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+      # Path for Backend 1
+      - path: /api/users
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-{{ .Values.backend1.name }}
+            port:
+              number: {{ .Values.backend1.service.port }}
+      # Path for Backend 2
+      - path: /api/blogs
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-{{ .Values.backend2.name }}
+            port:
+              number: {{ .Values.backend2.service.port }}
+      # Path for Backend 2
+      - path: /api/comments
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-{{ .Values.backend2.name }}
+            port:
+              number: {{ .Values.backend2.service.port }}
+      # Path for Frontend (catch-all)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-{{ .Values.frontend.name }}
+            port:
+              number: {{ .Values.frontend.service.port }}
+{{- end }}

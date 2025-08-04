@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  reetwiz-fellowblogs-chart:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-08-04T06:16:37.337227956+05:45"
+    description: A Helm chart for the FellowBlogs 3-tier application
+    digest: 48bd9d60f365206b0ea67e36765a60245ef87294def1bae6a25f0c42e9d0b384
+    name: reetwiz-fellowblogs-chart
+    type: application
+    urls:
+    - https://reetwiz.github.io/reetwiz-fellowblogs-chart/reetwiz-fellowblogs-chart-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-08-04T06:16:37.325241263+05:45"

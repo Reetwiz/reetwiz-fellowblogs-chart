@@ -1,0 +1,12 @@
+{{- if .Values.ingress.enabled }}
+application at: https://{{ .Values.ingress.host }}
+{{- end }}
+
+ -tier application has been deployed successfully!
+- Frontend: {{ .Values.frontend.replicaCount }} replicas
+- Backend1: {{ .Values.backend1.replicaCount }} replicas  
+- Backend2: {{ .Values.backend2.replicaCount }} replicas
+- PostgreSQL: {{ .Values.postgres.replicaCount }} replicas (1 Primary + {{ sub .Values.postgres.replicaCount 1 }} Standby)
+{{- if .Values.autoscaling.enabled }}
+- HPA enabled: {{ .Values.autoscaling.minReplicas }}-{{ .Values.autoscaling.maxReplicas }} replicas at {{ .Values.autoscaling.targetCPU }}% CPU
+{{- end }}

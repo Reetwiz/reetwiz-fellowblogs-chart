@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-postgres-secret
+  labels:
+    {{- include "reetwiz-fellowblogs-chart.labels" . | nindent 4 }}
+type: Opaque
+data:
+  POSTGRES_PASSWORD: {{ .Values.postgres.dbPassword | b64enc }}
+  POSTGRES_REPLICATION_PASSWORD: {{ .Values.postgres.dbPassword | b64enc }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-app-secrets
+  labels:
+    {{- include "reetwiz-fellowblogs-chart.labels" . | nindent 4 }}
+type: Opaque
+data:
+  CLERK_SECRET_KEY: {{ .Values.secrets.clerkSecretKey | b64enc }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "reetwiz-fellowblogs-chart.fullname" . }}-config
+  labels:
+    {{- include "reetwiz-fellowblogs-chart.labels" . | nindent 4 }}
+data:
+  DB_HOST: "{{ include "reetwiz-fellowblogs-chart.fullname" . }}-{{ .Values.postgres.name }}-primary"
+  DB_PORT: {{ .Values.postgres.service.primary.port | quote }}
+  DB_NAME: {{ .Values.postgres.dbName }}
+  DB_USER: {{ .Values.postgres.dbUser }}
+  DB_CLIENT: {{ .Values.config.dbClient }}
+  NODE_ENV: {{ .Values.config.nodeEnv }}
+  CLERK_PUBLISHABLE_KEY: {{ .Values.config.clerkPublishableKey }}
+  VITE_CLERK_PUBLISHABLE_KEY: {{ .Values.config.clerkPublishableKey }}
+  VITE_BACKEND1_BASE_URL: ""
+  VITE_BACKEND2_BASE_URL: ""
